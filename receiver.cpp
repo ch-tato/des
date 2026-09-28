@@ -9,13 +9,15 @@
 
 using namespace std;
 
-static void printHexBytes(const vector<uint8_t> &bytes) {
-  for (uint8_t b : bytes)
-    printf("%02X ", b);
+static void printHexBytes(const vector<uint8_t> &bytes)
+{
+    for (uint8_t b : bytes)
+        printf("%02X ", b);
 }
 
-int main() {
-  cout << "=====================================\n";
-  cout << "            DES RECEIVER\n";
-  cout << "=====================================\n\n";
+int main()
+{
+    cout << "=====================================\n";
+    cout << "            DES RECEIVER\n";
+    cout << "=====================================\n\n";
 }
