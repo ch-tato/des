@@ -44,6 +44,18 @@ inline Bits bytesToBits(const std::vector<uint8_t> &bytes)
     return bits;
 }
 
+inline std::vector<uint8_t> bitsToBytes(const Bits &bits)
+{
+    std::vector<uint8_t> bytes(bits.size() / 8, 0);
+    for (size_t i = 0; i < bits.size(); ++i)
+    {
+        int bitInByte = 7 - static_cast<int>(i % 8);
+        if (bits[i])
+            bytes[i / 8] |= (1 << bitInByte);
+    }
+    return bytes;
+}
+
 inline std::string bitsToHex(const Bits &bits)
 {
     std::ostringstream oss;

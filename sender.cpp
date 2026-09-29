@@ -71,6 +71,42 @@ int main()
     cout << "\n";
 
     // cbc encryption
+    cout << "\n[3] Encrypting (DES-CBC), round-by-round trace:\n";
+    vector<uint8_t> ciphertext;
+    vector<uint8_t> prevBlock = iv;
+
+    for (int i = 0; i < numBlocks; i++)
+    {
+        vector<uint8_t> block(padded.begin() + i * 8, padded.begin() + i * 8 + 8);
+        vector<uint8_t> xoredIn = des_util::xorBytes(block, prevBlock);
+
+        cout << "\n  --- Block " << (i + 1) << "/" << numBlocks << " ---\n";
+        cout << "    Plaintext block      : ";
+        printHexBytes(block);
+        cout << "\n";
+        cout << "    XOR with prev cipher : ";
+        printHexBytes(prevBlock);
+        cout << "\n";
+        cout << "    -> Input to DES      : ";
+        printHexBytes(xoredIn);
+        cout << "\n";
+
+        des::Bits inputBits = des::bytesToBits(xoredIn);
+        des::Bits cipherBits = des::encryptBlock(inputBits, ks, /*verbose=*/true, "[Block " + to_string(i + 1) + "]");
+        vector<uint8_t> cipherBlock = des::bitsToBytes(cipherBits);
+
+        cout << "    Cipher block         : ";
+        printHexBytes(cipherBlock);
+        cout << "\n";
+
+        ciphertext.insert(ciphertext.end(), cipherBlock.begin(), cipherBlock.end());
+        prevBlock = cipherBlock;
+    }
+
+    cout << "\n[4] Final ciphertext (" << ciphertext.size() << " bytes): ";
+    for (uint8_t b : ciphertext)
+        printf("%02X", b);
+    cout << "\n";
 
     // send over tcp
 }

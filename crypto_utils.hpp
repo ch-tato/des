@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <cstdint>
 #include <random>
 #include <stdexcept>
@@ -29,6 +30,14 @@ inline std::vector<uint8_t> generateRandomIV()
     for (auto &b : iv)
         b = static_cast<uint8_t>(dist(gen));
     return iv;
+}
+
+inline std::vector<uint8_t> xorBytes(const std::vector<uint8_t> &a, const std::vector<uint8_t> &b)
+{
+    std::vector<uint8_t> out(a.size());
+    for (size_t i = 0; i < a.size(); i++)
+        out[i] = a[i] ^ b[i];
+    return out;
 }
 
 } // namespace des_util
