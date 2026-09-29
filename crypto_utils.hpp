@@ -21,6 +21,19 @@ inline std::vector<uint8_t> pkcs7Pad(const std::vector<uint8_t> &data)
     return out;
 }
 
+inline std::vector<uint8_t> pkcs7Unpad(const std::vector<uint8_t> &data)
+{
+    if (data.empty())
+        throw std::runtime_error("Cannot unpad empty data");
+    uint8_t padLen = data.back();
+    if (padLen == 0 || padLen > BLOCK_SIZE || static_cast<size_t>(padLen) > data.size())
+        throw std::runtime_error("Invalid PKCS7 padding (data may be corrupted or key mismatched)");
+    for (size_t i = data.size() - padLen; i < data.size(); i++)
+        if (data[i] != padLen)
+            throw std::runtime_error("Invalid PKCS7 padding (data may be corrupted or key mismatched)");
+    return std::vector<uint8_t>(data.begin(), data.end() - padLen);
+}
+
 inline std::vector<uint8_t> generateRandomIV()
 {
     std::vector<uint8_t> iv(BLOCK_SIZE);
