@@ -31,16 +31,16 @@ inline void printHex(const std::vector<uint8_t> &bytes)
         printf("%02X ", b);
 }
 
-inline bool isQuitCommand(const std::string &s)
+inline bool isExitCommand(const std::string &s)
 {
     std::string t;
     for (char c : s)
         if (!isspace(static_cast<unsigned char>(c)))
             t += static_cast<char>(tolower(static_cast<unsigned char>(c)));
-    return t == "exit" || t == "quit";
+    return t == "exit";
 }
 
-inline void sendQuitSignal(int sock)
+inline void sendExitSignal(int sock)
 {
     uint32_t zero = htonl(0);
     net::sendAll(sock, &zero, sizeof(zero));
@@ -102,7 +102,7 @@ inline void sendEncryptedMessage(int sock, const des::KeySchedule &ks, const std
 
 struct ReceivedMessage
 {
-    bool isQuit;
+    bool isExit;
     std::string plaintext;
 };
 

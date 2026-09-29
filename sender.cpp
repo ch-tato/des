@@ -53,7 +53,7 @@ int main()
     {
         cout << "\n[Setup] Connecting to " << ip << ":" << port << " ...\n";
         sock = net::connectToServer(ip, port);
-        cout << "[Setup] Connected. Type messages below - 'exit' or 'quit' ends "
+        cout << "[Setup] Connected. Type messages below - 'exit' ends "
                 "the session for both sides.\n";
     }
     catch (const exception &e)
@@ -66,13 +66,13 @@ int main()
     while (true)
     {
         cout << "\n---------------------------------------\n";
-        cout << "Enter message (or 'exit'/'quit' to end): ";
+        cout << "Enter message (or 'exit'/'Exit' to end): ";
         string message;
         getline(cin, message);
 
-        if (chat::isQuitCommand(message))
+        if (chat::isExitCommand(message))
         {
-            chat::sendQuitSignal(sock);
+            chat::sendExitSignal(sock);
             cout << "\n[Session] You ended the conversation.\n";
             break;
         }
@@ -84,7 +84,7 @@ int main()
         try
         {
             chat::ReceivedMessage reply = chat::receiveEncryptedMessage(sock, ks, turnNumber);
-            if (reply.isQuit)
+            if (reply.isExit)
             {
                 cout << "\n[Session] Receiver ended the conversation.\n";
                 break;

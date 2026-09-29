@@ -16,8 +16,6 @@
 
 using namespace std;
 
-
-
 int main()
 {
     cout << "=====================================\n";
@@ -52,8 +50,7 @@ int main()
         serverSock = net::createServerSocket(port);
         string clientIP;
         sock = net::acceptClient(serverSock, clientIP);
-        cout << "[Setup] Connection established from " << clientIP
-             << ". 'exit'/'quit' ends the session for both sides.\n";
+        cout << "[Setup] Connection established from " << clientIP << ". 'exit' ends the session for both sides.\n";
     }
     catch (const exception &e)
     {
@@ -70,7 +67,7 @@ int main()
         try
         {
             chat::ReceivedMessage incoming = chat::receiveEncryptedMessage(sock, ks, turnNumber);
-            if (incoming.isQuit)
+            if (incoming.isExit)
             {
                 cout << "\n[Session] Sender ended the conversation.\n";
                 break;
@@ -83,13 +80,13 @@ int main()
             break;
         }
 
-        cout << "\nEnter reply (or 'exit'/'quit' to end): ";
+        cout << "\nEnter reply (or 'exit' to end): ";
         string message;
         getline(cin, message);
 
-        if (chat::isQuitCommand(message))
+        if (chat::isExitCommand(message))
         {
-            chat::sendQuitSignal(sock);
+            chat::sendExitSignal(sock);
             cout << "\n[Session] You ended the conversation.\n";
             break;
         }
