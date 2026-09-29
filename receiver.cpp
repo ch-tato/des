@@ -16,11 +16,7 @@
 
 using namespace std;
 
-static void printHexBytes(const vector<uint8_t> &bytes)
-{
-    for (uint8_t b : bytes)
-        printf("%02X ", b);
-}
+
 
 int main()
 {
@@ -106,7 +102,5 @@ int main()
     cout << "\n=====================================\n";
     cout << "               DONE\n";
     cout << "=====================================\n";
-    return 0;
-
     return 0;
 }

@@ -13,12 +13,6 @@
 
 using namespace std;
 
-static void printHexBytes(const vector<uint8_t> &bytes)
-{
-    for (uint8_t b : bytes)
-        printf("%02X ", b);
-}
-
 int main()
 {
     cout << "=====================================\n";
@@ -46,11 +40,6 @@ int main()
         cout << "  -> Key must be exactly 8 characters. Try again.\n";
     }
 
-    // message
-    string message;
-    cout << "Enter plaintext message to send: ";
-    getline(cin, message);
-
     // key schedule
     vector<uint8_t> keyBytes(key.begin(), key.end());
     des::Bits keyBits = des::bytesToBits(keyBytes);
@@ -58,6 +47,7 @@ int main()
     cout << "\n[1] Deriving 16 round keys (K1..K16) from the shared key...\n";
     des::KeySchedule ks = des::generateRoundKeys(keyBits, /*verbose=*/true);
 
+    // message over tcp
     int sock;
     try
     {
