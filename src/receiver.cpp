@@ -10,9 +10,9 @@
 #include <string>
 #include <vector>
 
-#include "des.hpp"
-#include "message_protocol.hpp"
-#include "network.hpp"
+#include "include/des.hpp"
+#include "include/message_protocol.hpp"
+#include "include/network.hpp"
 
 using namespace std;
 
