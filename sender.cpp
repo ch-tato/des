@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "crypto_utils.hpp"
 #include "des.hpp"
 
 using namespace std;
@@ -57,6 +58,17 @@ int main()
     des::KeySchedule ks = des::generateRoundKeys(keyBits, /*verbose=*/true);
 
     // padding
+    vector<uint8_t> plainBytes(message.begin(), message.end());
+    vector<uint8_t> padded = des_util::pkcs7Pad(plainBytes);
+    int numBlocks = static_cast<int>(padded.size() / des_util::BLOCK_SIZE);
+
+    cout << "\n[2] Plaintext: \"" << message << "\" (" << plainBytes.size() << " bytes)\n";
+    cout << "    PKCS#7 padded to " << padded.size() << " bytes -> " << numBlocks << " block(s) of 8 bytes\n";
+
+    vector<uint8_t> iv = des_util::generateRandomIV();
+    cout << "    Random IV generated: ";
+    printHexBytes(iv);
+    cout << "\n";
 
     // cbc encryption
 
