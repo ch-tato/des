@@ -91,6 +91,12 @@ int main()
             }
             cout << "\n[Session] Receiver replied: \"" << reply.plaintext << "\"\n";
         }
+        catch (const chat::DecryptionError &e)
+        {
+            cout << "\n[Session] Could not decrypt the incoming message: " << e.what() << "\n";
+            cout << "Check that both sides entered the exact same 8-character key.\n";
+            break;
+        }
         catch (const exception &e)
         {
             cout << "\n[Session] Connection closed unexpectedly (" << e.what() << ").\n";

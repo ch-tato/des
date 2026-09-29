@@ -15,6 +15,7 @@
 #include <cctype>
 #include <cstdio>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -24,6 +25,11 @@
 
 namespace chat
 {
+
+struct DecryptionError : public std::runtime_error
+{
+    using std::runtime_error::runtime_error;
+};
 
 inline void printHex(const std::vector<uint8_t> &bytes)
 {
@@ -163,7 +169,16 @@ inline ReceivedMessage receiveEncryptedMessage(int sock, const des::KeySchedule 
         prevBlock = cblock;
     }
 
-    std::vector<uint8_t> plain = des_util::pkcs7Unpad(plainPadded);
+    std::vector<uint8_t> plain;
+    try
+    {
+        plain = des_util::pkcs7Unpad(plainPadded);
+    }
+    catch (const std::exception &)
+    {
+        throw DecryptionError(
+            "Decryption failed: padding is invalid. The shared keys on the two sides probably don't match (or the data was corrupted).");
+    }
     std::string message(plain.begin(), plain.end());
     return ReceivedMessage{false, message};
 }
