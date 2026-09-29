@@ -2,7 +2,6 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
-#include <iomanip>
 #include <ios>
 #include <iostream>
 #include <sstream>
@@ -225,6 +224,33 @@ inline Bits encryptBlock(const Bits &plainBlock64, const KeySchedule &ks, bool v
 inline Bits decryptBlock(const Bits &cipherBlock64, const KeySchedule &ks, bool verbose,
                          const std::string &blockLabel = "")
 {
+    Bits ip = permute(cipherBlock64, IP_TABLE, 64);
+    Bits L(ip.begin(), ip.begin() + 32);
+    Bits R(ip.begin() + 32, ip.end());
+    if (verbose)
+        std::cout << "    " << blockLabel << " After IP: L0=" << bitsToHex(L) << " R0=" << bitsToHex(R) << "\n";
+
+    for (int round = 0; round < 16; round++)
+    {
+        Bits newL = R;
+        Bits fout = feistel(R, ks.roundKeys[15 - round], verbose);
+        Bits newR = xorBits(L, fout);
+        L = newL;
+        R = newR;
+        if (verbose)
+            std::cout << "    " << blockLabel << " Round " << (round + 1) << ": L=" << bitsToHex(L)
+                      << " R=" << bitsToHex(R) << "\n";
+    }
+
+    Bits preOutput;
+    preOutput.reserve(64);
+    preOutput.insert(preOutput.end(), R.begin(), R.end());
+    preOutput.insert(preOutput.end(), L.begin(), L.end());
+    Bits cipher = permute(preOutput, FP_TABLE, 64);
+    if (verbose)
+        std::cout << "    " << blockLabel << " After swap + FP: cipher=" << bitsToHex(cipher) << "\n";
+
+    return cipher;
 }
 
 } // namespace des
