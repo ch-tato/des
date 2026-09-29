@@ -1,13 +1,18 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -O2 -Wall
+CXXFLAGS = -std=c++17 -O2 -Wall -Wextra
 
-all: sender receiver
+HEADERS = des.hpp crypto_utils.hpp network.hpp message_protocol.hpp
+TARGETS = sender receiver
 
-sender: sender.cpp des.hpp crypto_utils.hpp network.hpp
-	$(CXX) $(CXXFLAGS) -o sender sender.cpp
+.PHONY: all clean
 
-receiver: receiver.cpp des.hpp crypto_utils.hpp network.hpp
-	$(CXX) $(CXXFLAGS) -o receiver receiver.cpp
+all: $(TARGETS)
+
+sender: sender.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -o $@ $<
+
+receiver: receiver.cpp $(HEADERS)
+	$(CXX) $(CXXFLAGS) -o $@ $<
 
 clean:
-	rm -f sender receiver
+	rm -f $(TARGETS) *.o

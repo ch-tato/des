@@ -7,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "crypto_utils.hpp"
 #include "des.hpp"
+#include "message_protocol.hpp"
 #include "network.hpp"
 
 using namespace std;
@@ -22,7 +22,7 @@ static void printHexBytes(const vector<uint8_t> &bytes)
 int main()
 {
     cout << "=====================================\n";
-    cout << "            DES SENDER\n";
+    cout << "            DES CLIENT\n";
     cout << "=====================================\n\n";
 
     // ip and port
@@ -58,70 +58,13 @@ int main()
     cout << "\n[1] Deriving 16 round keys (K1..K16) from the shared key...\n";
     des::KeySchedule ks = des::generateRoundKeys(keyBits, /*verbose=*/true);
 
-    // padding
-    vector<uint8_t> plainBytes(message.begin(), message.end());
-    vector<uint8_t> padded = des_util::pkcs7Pad(plainBytes);
-    int numBlocks = static_cast<int>(padded.size() / des_util::BLOCK_SIZE);
-
-    cout << "\n[2] Plaintext: \"" << message << "\" (" << plainBytes.size() << " bytes)\n";
-    cout << "    PKCS#7 padded to " << padded.size() << " bytes -> " << numBlocks << " block(s) of 8 bytes\n";
-
-    vector<uint8_t> iv = des_util::generateRandomIV();
-    cout << "    Random IV generated: ";
-    printHexBytes(iv);
-    cout << "\n";
-
-    // cbc encryption
-    cout << "\n[3] Encrypting (DES-CBC), round-by-round trace:\n";
-    vector<uint8_t> ciphertext;
-    vector<uint8_t> prevBlock = iv;
-
-    for (int i = 0; i < numBlocks; i++)
-    {
-        vector<uint8_t> block(padded.begin() + i * 8, padded.begin() + i * 8 + 8);
-        vector<uint8_t> xoredIn = des_util::xorBytes(block, prevBlock);
-
-        cout << "\n  --- Block " << (i + 1) << "/" << numBlocks << " ---\n";
-        cout << "    Plaintext block      : ";
-        printHexBytes(block);
-        cout << "\n";
-        cout << "    XOR with prev cipher : ";
-        printHexBytes(prevBlock);
-        cout << "\n";
-        cout << "    -> Input to DES      : ";
-        printHexBytes(xoredIn);
-        cout << "\n";
-
-        des::Bits inputBits = des::bytesToBits(xoredIn);
-        des::Bits cipherBits = des::encryptBlock(inputBits, ks, /*verbose=*/true, "[Block " + to_string(i + 1) + "]");
-        vector<uint8_t> cipherBlock = des::bitsToBytes(cipherBits);
-
-        cout << "    Cipher block         : ";
-        printHexBytes(cipherBlock);
-        cout << "\n";
-
-        ciphertext.insert(ciphertext.end(), cipherBlock.begin(), cipherBlock.end());
-        prevBlock = cipherBlock;
-    }
-
-    cout << "\n[4] Final ciphertext (" << ciphertext.size() << " bytes): ";
-    for (uint8_t b : ciphertext)
-        printf("%02X", b);
-    cout << "\n";
-
-    // send over tcp
+    int sock;
     try
     {
-        cout << "\n[5] Connecting to " << ip << ":" << port << " ...\n";
-        int sock = net::connectToServer(ip, port);
-
-        uint32_t nBlocksNet = htonl(static_cast<uint32_t>(numBlocks));
-        net::sendAll(sock, &nBlocksNet, sizeof(nBlocksNet));
-        net::sendAll(sock, iv.data(), iv.size());
-        net::sendAll(sock, ciphertext.data(), ciphertext.size());
-
-        cout << "    Sent " << numBlocks << " block(s) + IV to receiver.\n";
-        close(sock);
+        cout << "\n[Setup] Connecting to " << ip << ":" << port << " ...\n";
+        sock = net::connectToServer(ip, port);
+        cout << "[Setup] Connected. Type messages below - 'exit' or 'quit' ends "
+                "the session for both sides.\n";
     }
     catch (const exception &e)
     {
@@ -129,6 +72,43 @@ int main()
         return 1;
     }
 
+    int turnNumber = 0;
+    while (true)
+    {
+        cout << "\n---------------------------------------\n";
+        cout << "Enter message (or 'exit'/'quit' to end): ";
+        string message;
+        getline(cin, message);
+
+        if (chat::isQuitCommand(message))
+        {
+            chat::sendQuitSignal(sock);
+            cout << "\n[Session] You ended the conversation.\n";
+            break;
+        }
+
+        ++turnNumber;
+        chat::sendEncryptedMessage(sock, ks, message, turnNumber);
+
+        cout << "\n[Session] Waiting for receiver's reply...\n";
+        try
+        {
+            chat::ReceivedMessage reply = chat::receiveEncryptedMessage(sock, ks, turnNumber);
+            if (reply.isQuit)
+            {
+                cout << "\n[Session] Receiver ended the conversation.\n";
+                break;
+            }
+            cout << "\n[Session] Receiver replied: \"" << reply.plaintext << "\"\n";
+        }
+        catch (const exception &e)
+        {
+            cout << "\n[Session] Connection closed unexpectedly (" << e.what() << ").\n";
+            break;
+        }
+    }
+
+    close(sock);
     cout << "\n=====================================\n";
     cout << "               DONE\n";
     cout << "=====================================\n";
