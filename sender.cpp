@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "des.hpp"
+
 using namespace std;
 
 static void printHexBytes(const vector<uint8_t> &bytes)
@@ -48,6 +50,11 @@ int main()
     getline(cin, message);
 
     // key schedule
+    vector<uint8_t> keyBytes(key.begin(), key.end());
+    des::Bits keyBits = des::bytesToBits(keyBytes);
+
+    cout << "\n[1] Deriving 16 round keys (K1..K16) from the shared key...\n";
+    des::KeySchedule ks = des::generateRoundKeys(keyBits, /*verbose=*/true);
 
     // padding
 
