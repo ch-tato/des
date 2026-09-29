@@ -156,6 +156,7 @@ inline KeySchedule generateRoundKeys(const Bits &key64, bool verbose)
         Bits CD;
         CD.reserve(56);
         CD.insert(CD.end(), C.begin(), C.end());
+        CD.insert(CD.end(), D.begin(), D.end());
         Bits roundKey = permute(CD, PC2_TABLE, 48);
         ks.roundKeys[round] = roundKey;
         if (verbose)
@@ -176,7 +177,7 @@ inline Bits feistel(const Bits &R, const Bits &roundKey, bool verbose)
     for (int i = 0; i < 8; i++)
     {
         int row = (xored[i * 6 + 0] << 1) | xored[i * 6 + 5];
-        int col = (xored[i * 6 + 1] << 3) | (xored[i * 6 + 2] << 2) | (xored[i * 6 + 3] << 2) | xored[i * 6 + 4];
+        int col = (xored[i * 6 + 1] << 3) | (xored[i * 6 + 2] << 2) | (xored[i * 6 + 3] << 1) | xored[i * 6 + 4];
         int val = S_BOX[i][row][col];
         for (int b = 3; b >= 0; b--)
             sboxOut.push_back((val >> b) & 1);
