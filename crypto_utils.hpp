@@ -27,10 +27,10 @@ inline std::vector<uint8_t> pkcs7Unpad(const std::vector<uint8_t> &data)
         throw std::runtime_error("Cannot unpad empty data");
     uint8_t padLen = data.back();
     if (padLen == 0 || padLen > BLOCK_SIZE || static_cast<size_t>(padLen) > data.size())
-        throw std::runtime_error("Invalid PKCS7 padding (data may be corrupted or key mismatched)");
+        throw std::runtime_error("Invalid PKCS7 padding");
     for (size_t i = data.size() - padLen; i < data.size(); ++i)
         if (data[i] != padLen)
-            throw std::runtime_error("Invalid PKCS7 padding bytes (data may be corrupted or key mismatched)");
+            throw std::runtime_error("Invalid PKCS7 padding bytes");
     return std::vector<uint8_t>(data.begin(), data.end() - padLen);
 }
 
