@@ -124,6 +124,11 @@ decryption are structurally the same operation.
 - Networking uses plain POSIX sockets with **no TLS/authentication of
   its own** — the DES layer is the entire "security," matching the
   scope of the assignment (demonstrating symmetric encryption itself).
+- Key mismatches between sender and receiver cause decryption to produce
+  garbage, which is reported as a decryption failure (rather than a connection
+  error). Note that in roughly 1 out of 256 cases garbage can accidentally look
+  like valid PKCS#7 padding, so a mismatch may occasionally go undetected until
+  the next message.
 - The chat is **strict-turn** (send → wait for reply → send → ...),
   not free-form — a side can't send a second message before the other
   has replied. This keeps the code simple (no threads/async I/O). If
