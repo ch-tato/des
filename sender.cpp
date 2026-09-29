@@ -66,7 +66,7 @@ int main()
     while (true)
     {
         cout << "\n---------------------------------------\n";
-        cout << "Enter message (or 'exit'/'Exit' to end): ";
+        cout << "Enter message (or 'exit' to end): ";
         string message;
         getline(cin, message);
 
