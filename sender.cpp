@@ -1,5 +1,5 @@
 #include <arpa/inet.h>
-#include <cstdint>
+#include <exception>
 #include <unistd.h>
 
 #include <cstdio>
@@ -9,6 +9,7 @@
 
 #include "crypto_utils.hpp"
 #include "des.hpp"
+#include "network.hpp"
 
 using namespace std;
 
@@ -109,4 +110,27 @@ int main()
     cout << "\n";
 
     // send over tcp
+    try
+    {
+        cout << "\n[5] Connecting to " << ip << ":" << port << " ...\n";
+        int sock = net::connectToServer(ip, port);
+
+        uint32_t nBlocksNet = htonl(static_cast<uint32_t>(numBlocks));
+        net::sendAll(sock, &nBlocksNet, sizeof(nBlocksNet));
+        net::sendAll(sock, iv.data(), iv.size());
+        net::sendAll(sock, ciphertext.data(), ciphertext.size());
+
+        cout << "    Sent " << numBlocks << " block(s) + IV to receiver.\n";
+        close(sock);
+    }
+    catch (const exception &e)
+    {
+        cerr << "[ERROR] " << e.what() << "\n";
+        return 1;
+    }
+
+    cout << "\n=====================================\n";
+    cout << "               DONE\n";
+    cout << "=====================================\n";
+    return 0;
 }
